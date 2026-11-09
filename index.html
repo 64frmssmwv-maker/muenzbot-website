@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Münzbot – Wirtschaft, Shop und Verwarnungen für Discord</title>
+<meta name="description" content="Ein Discord-Bot mit Münzen, Item-Shop, Inventar und Warn-System.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🪙%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef3f1; --surface:#ffffff; --ink:#14262b; --muted:#53666b;
+  --teal:#1f6f6b; --coin:#e3a72f; --coin-ink:#3b2a00; --line:#cfdad7;
+  --bubble:#e4ece9; --bubble-bot:#d6ebe8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1b1e; --surface:#162529; --ink:#e8f0ee; --muted:#9db1b5;
+    --teal:#4fb3ad; --coin:#f0b93f; --coin-ink:#2c1f00; --line:#2a3d41;
+    --bubble:#1d3034; --bubble-bot:#1b3a3b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1b1e; --surface:#162529; --ink:#e8f0ee; --muted:#9db1b5;
+  --teal:#4fb3ad; --coin:#f0b93f; --coin-ink:#2c1f00; --line:#2a3d41;
+  --bubble:#1d3034; --bubble-bot:#1b3a3b;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.0625rem/1.6 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:var(--teal)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--coin);outline-offset:2px}
+.wrap{max-width:68rem;margin:0 auto;padding:0 1.25rem}
+nav{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;align-items:center;padding:1rem 0}
+nav .brand{font:800 1.25rem "Bricolage Grotesque",system-ui,sans-serif;color:var(--ink);text-decoration:none;margin-right:auto}
+nav a{color:var(--muted);text-decoration:none;padding:.25rem 0}
+nav a:hover{color:var(--ink)}
+.hero{display:grid;gap:2.5rem;padding:2.5rem 0 4rem;align-items:center}
+@media (min-width:52rem){.hero{grid-template-columns:1.1fr .9fr}}
+.hero h1{font-size:clamp(2.4rem,7vw,4.2rem);font-weight:800;letter-spacing:-.02em}
+.hero p{font-size:1.2rem;color:var(--muted);max-width:34rem;margin:1.25rem 0 1.75rem}
+.btn{display:inline-block;background:var(--coin);color:var(--coin-ink);font-weight:600;text-decoration:none;padding:.85rem 1.5rem;border-radius:.6rem}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);margin-left:.5rem}
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:1rem;padding:1.1rem;display:grid;gap:.7rem;font-size:1rem}
+.chat .m{padding:.6rem .85rem;border-radius:.8rem;max-width:92%;background:var(--bubble)}
+.chat .m.bot{background:var(--bubble-bot);justify-self:end}
+.chat code{font:600 .95rem ui-monospace,SFMono-Regular,Menlo,monospace}
+.chat small{display:block;color:var(--muted);font-size:.8rem}
+section{padding:3rem 0;border-top:1px solid var(--line)}
+section h2{font-size:clamp(1.7rem,4vw,2.4rem);margin-bottom:1.5rem}
+.groups{display:grid;gap:1.5rem}
+@media (min-width:52rem){.groups{grid-template-columns:repeat(3,1fr)}}
+.group h3{font-size:1.3rem;margin-bottom:.6rem}
+.group dl{margin:0;border-top:2px solid var(--coin)}
+.group dt{font:600 1rem ui-monospace,SFMono-Regular,Menlo,monospace;padding-top:.7rem}
+.group dd{margin:0 0 .7rem;color:var(--muted);padding-bottom:.7rem;border-bottom:1px solid var(--line)}
+.note{color:var(--muted);margin-top:1.5rem}
+.legal{max-width:44rem}
+.legal h3{font-size:1.2rem;margin:1.75rem 0 .4rem}
+.legal p,.legal ul{margin:.4rem 0}
+.ph{background:color-mix(in srgb,var(--coin) 30%,transparent);padding:0 .25rem;border-radius:.25rem}
+footer{border-top:1px solid var(--line);padding:2rem 0 3rem;color:var(--muted);font-size:.95rem}
+footer p{margin:.3rem 0;max-width:44rem}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav aria-label="Hauptmenü">
+    <a class="brand" href="#start">🪙 Münzbot</a>
+    <a href="#befehle">Befehle</a>
+    <a href="#impressum">Impressum</a>
+    <a href="#datenschutz">Datenschutz</a>
+  </nav>
+
+  <header class="hero" id="start">
+    <div>
+      <h1>Münzen verdienen, im Shop ausgeben, Ordnung halten.</h1>
+      <p>Münzbot gibt deinem Discord-Server eine eigene Wirtschaft mit Item-Shop und Inventar. Moderatoren verwarnen Mitglieder mit einem Befehl und sehen alle Warns übersichtlich in einer Karte.</p>
+      <a class="btn" href="https://discord.com/oauth2/authorize?client_id=DEINE_APPLICATION_ID&scope=bot">Zum Server hinzufügen</a>
+      <a class="btn ghost" href="#befehle">Alle Befehle</a>
+    </div>
+    <div class="chat" role="img" aria-label="Beispielchat mit dem Bot">
+      <div class="m"><small>Mia</small><code>.arbeiten</code></div>
+      <div class="m bot"><small>Münzbot</small>⛏️ Du hast gearbeitet und 42 Münzen verdient.</div>
+      <div class="m"><small>Mia</small><code>.kaufen schwert</code></div>
+      <div class="m bot"><small>Münzbot</small>✅ Du hast <strong>schwert</strong> gekauft!</div>
+      <div class="m"><small>Mia</small><code>.inventar</code></div>
+      <div class="m bot"><small>Münzbot</small>🎒 schwert x1</div>
+    </div>
+  </header>
+
+  <section id="befehle">
+    <h2>Befehle</h2>
+    <div class="groups">
+      <div class="group">
+        <h3>Münzen</h3>
+        <dl>
+          <dt>.konto</dt><dd>Zeigt dein Guthaben.</dd>
+          <dt>.arbeiten</dt><dd>20 bis 60 Münzen, einmal pro Stunde.</dd>
+          <dt>.taeglich</dt><dd>100 Münzen, einmal pro Tag.</dd>
+          <dt>.geben @Person 50</dt><dd>Schickt Münzen an ein anderes Mitglied.</dd>
+        </dl>
+      </div>
+      <div class="group">
+        <h3>Shop und Inventar</h3>
+        <dl>
+          <dt>.shop</dt><dd>Listet alle Items mit Preisen.</dd>
+          <dt>.kaufen schwert</dt><dd>Kauft ein Item vom Shop.</dd>
+          <dt>.inventar</dt><dd>Zeigt, was du besitzt.</dd>
+          <dt>.itemadd name preis</dt><dd>Legt ein Item an oder ändert den Preis (Administratoren).</dd>
+          <dt>.itemdel name</dt><dd>Entfernt ein Item aus dem Shop (Administratoren).</dd>
+          <dt>.itemgive @Person name 3</dt><dd>Vergibt Items direkt (Administratoren).</dd>
+        </dl>
+      </div>
+      <div class="group">
+        <h3>Verwarnungen</h3>
+        <dl>
+          <dt>.warn @Person Grund</dt><dd>Verwarnt ein Mitglied (Recht „Mitglieder auf Timeout setzen“).</dd>
+          <dt>.warns @Person</dt><dd>Zeigt alle Warns in einer Karte. Ohne Namen siehst du deine eigenen.</dd>
+          <dt>.delwarn 3</dt><dd>Löscht einen Warn anhand seiner Nummer.</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="note">Das Präfix ist ein Punkt. Der Bot braucht in deinem Kanal die Rechte „Nachrichten lesen“, „Nachrichten senden“ und „Links einbetten“.</p>
+  </section>
+
+  <section id="impressum">
+    <h2>Impressum</h2>
+    <div class="legal">
+      <p>Angaben gemäß § 5 DDG</p>
+      <p><span class="ph">Vor- und Nachname</span><br><span class="ph">Straße und Hausnummer</span><br><span class="ph">PLZ und Ort</span></p>
+      <h3>Kontakt</h3>
+      <p>E-Mail: <span class="ph">deine@mail.de</span></p>
+      <h3>Hinweis</h3>
+      <p>Münzbot ist ein privates Hobbyprojekt und steht in keiner Verbindung zu Discord Inc. Discord ist eine Marke der Discord Inc.</p>
+    </div>
+  </section>
+
+  <section id="datenschutz">
+    <h2>Datenschutz</h2>
+    <div class="legal">
+      <h3>Verantwortlich</h3>
+      <p>Verantwortlich ist die im Impressum genannte Person.</p>
+      <h3>Welche Daten der Bot speichert</h3>
+      <ul>
+        <li>Discord-Nutzer-ID und Server-ID</li>
+        <li>Münzstand und Inventar</li>
+        <li>Warns mit Grund, ID des Moderators und Zeitpunkt</li>
+      </ul>
+      <p>Der Bot verarbeitet Nachrichten nur, um Befehle mit dem Präfix „.“ zu erkennen. Nachrichteninhalte werden nicht gespeichert.</p>
+      <h3>Zweck und Rechtsgrundlage</h3>
+      <p>Die Daten werden gespeichert, damit Wirtschaftssystem und Verwarnungen funktionieren. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Betrieb des Bots).</p>
+      <h3>Speicherdauer und Löschung</h3>
+      <p>Die Daten bleiben gespeichert, bis du ihre Löschung verlangst. Schreib dazu eine E-Mail an die Adresse im Impressum. Einzelne Warns können Moderatoren mit <code>.delwarn</code> entfernen.</p>
+      <h3>Weitergabe und Hosting</h3>
+      <p>Die Daten werden nicht verkauft. Der Bot läuft bei <span class="ph">Hosting-Anbieter</span>. Für die Nutzung von Discord selbst gilt die Datenschutzerklärung von Discord Inc.</p>
+      <h3>Deine Rechte</h3>
+      <p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Widerspruch. Außerdem kannst du dich bei einer Datenschutzbehörde beschweren.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Gelb markierte Stellen musst du durch deine echten Angaben ersetzen.</p>
+    <p>Münzbot ist nicht mit Discord verbunden oder von Discord unterstützt.</p>
+  </footer>
+</div>
+</body>
+</html>
